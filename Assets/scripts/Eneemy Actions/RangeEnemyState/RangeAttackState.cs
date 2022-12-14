@@ -11,10 +11,24 @@ public class RangeAttackState : BaseRangeState
     }
     public override void UpdateState(RangeEnemyAI stateControler)
     {
+        float distanceToPlayer = stateControler.getDistanceToPlayer();
         stateControler.ShootPlayer();
+        if (distanceToPlayer < stateControler.enemyRangeToRun)
+        {
+            stateControler.GetPlayerState();
+            if (stateControler.weaponState == WeaponState.MeleeWeapon)
+            {
+                StateExit(stateControler.Move, stateControler);
+            }
+            else
+            {
+                StateExit(stateControler.Strafe, stateControler);
+            }
+        }
     }
 
-    public void StateExit(BaseState state, BaseEnemyAI stateControler)
+    public void StateExit(BaseRangeState state, RangeEnemyAI stateControler)
     {
+        stateControler.SwitchState(state);
     }
 }

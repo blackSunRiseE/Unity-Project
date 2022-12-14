@@ -8,6 +8,7 @@ public class DamagedState : BaseState
     public override void EnterState(BaseMeleeEnemyAI stateControler)
     {
         lastDamagedTime = Time.time;
+        stateControler.stopUnit();
         Debug.Log("Damaged");
         stateControler.animator.SetBool("isDamaged",true);
         //start idle animation

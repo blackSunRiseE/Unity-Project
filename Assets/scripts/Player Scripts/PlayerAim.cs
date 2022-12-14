@@ -8,7 +8,7 @@ public class PlayerAim : MonoBehaviour
     public float xAxis, yAxis;
     [SerializeField] Transform cameraFollowPos;
 
-    public Transform aimPos;
+    //[SerializeField] Transform aimPos;
     [HideInInspector] public Vector3 actualAimPos;
     [SerializeField] float aimSmoothSpeed =  20;
     [SerializeField] LayerMask aimMask;
@@ -39,10 +39,10 @@ public class PlayerAim : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(screenCenter);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, aimMask))
+        /*if (Physics.Raycast(ray, out hit, Mathf.Infinity, aimMask))
         {
             aimPos.position = Vector3.Lerp(aimPos.position, hit.point, aimSmoothSpeed * Time.deltaTime);
-        }
+        }*/
 
 
     }

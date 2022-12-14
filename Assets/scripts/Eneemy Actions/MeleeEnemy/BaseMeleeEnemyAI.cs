@@ -1,16 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class BaseMeleeEnemyAI : BaseEnemyAI
 {
-    [SerializeField] public Transform player;
+    [HideInInspector] public Transform player;
     [SerializeField] public float moveSpeed;
     [SerializeField] public float attackRange = 1;
     [SerializeField] public float chaseRange = 10;
     [SerializeField] public float attackDelay = 1;
     [SerializeField] public float attackDamage = 10;
     [SerializeField] public float Hp = 50;
+    private NavMeshAgent enemy;
 
     BaseState currentState;
     [HideInInspector] public BaseState prevState;
@@ -31,6 +33,8 @@ public class BaseMeleeEnemyAI : BaseEnemyAI
     // Start is called before the first frame update
     void Start()
     {
+        player = GameObject.FindWithTag("Player").transform;
+        enemy = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         SwitchState(Idle);
     }
@@ -58,8 +62,14 @@ public class BaseMeleeEnemyAI : BaseEnemyAI
         Vector3 playerPosition = new Vector3(player.position.x,
                                              transform.position.y,
                                              player.position.z);
-        transform.LookAt(playerPosition);
-        transform.Translate(0, 0, moveSpeed * Time.deltaTime);
+        enemy.SetDestination(playerPosition);
+        //transform.LookAt(playerPosition);
+        //transform.Translate(0, 0, moveSpeed * Time.deltaTime);
+    }
+
+    public void stopUnit()
+    {
+        enemy.SetDestination(transform.position);
     }
 
     public void findEnemies()

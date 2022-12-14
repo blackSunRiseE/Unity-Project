@@ -16,6 +16,7 @@ public class RangeIdleState : BaseRangeState
         {
             StateExit(stateControler.Attack, stateControler);
         }
+        
     }
 
     public void StateExit(BaseRangeState state, RangeEnemyAI stateControler)

@@ -49,7 +49,7 @@ public class RangeWeaponBase : MonoBehaviour
             LastShootTime = Time.time;
 
         }
-        if (hit.transform != null)
+        if (hit.transform.tag == "Enemy")
         {
             Debug.Log("Shoot");
             BaseEnemyAI target = hit.transform.GetComponent<BaseEnemyAI>();
