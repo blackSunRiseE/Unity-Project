@@ -8,6 +8,7 @@ public class DeadState : BaseState
     public override void EnterState(BaseMeleeEnemyAI stateControler)
     {
         stateControler.animator.SetBool("isDead", true);
+        stateControler.DestroyEnemy();
         //start idle animation
 
     }

@@ -14,7 +14,10 @@ public class Generator2D : MonoBehaviour {
 
     public class Room {
         public RectInt bounds;
-        GUID ID;
+        public GUID ID;
+        public bool isFinal = false;
+        public bool isBossRoom;
+        public int hallwaysCount = 0;
         public Room(Vector2Int location, Vector2Int size) {
             bounds = new RectInt(location, size);
             ID = GUID.Generate();
@@ -26,7 +29,8 @@ public class Generator2D : MonoBehaviour {
         }
         public bool IsInside(Vector3 playerPosition)
         {
-            return bounds.Contains(new Vector2Int((int)playerPosition.x, (int)playerPosition.y));
+            return bounds.xMin <= playerPosition.x && bounds.xMax >= playerPosition.x && bounds.yMin <= playerPosition.z && bounds.yMax >= playerPosition.z;
+
         }
     }
 
@@ -50,6 +54,8 @@ public class Generator2D : MonoBehaviour {
     public List<Room> rooms { get;  set; }
     Delaunay2D delaunay;
     HashSet<Prim.Edge> selectedEdges;
+    Vector2 roomPosition;
+
 
     /*void Start() {
         Generate();
@@ -212,5 +218,76 @@ public class Generator2D : MonoBehaviour {
             }
         }
         return null;
+    }
+
+    public void ChooseBossRoom()
+    {
+        for (int i = 0; i < grid.Size.x; i++)
+        {
+            for (int j = 0; j < grid.Size.y; j++)
+            {
+                if (FindDoor(i, j))
+                {
+                    GetRoom(new Vector3(roomPosition.x, 0, roomPosition.y)).hallwaysCount++;
+                }
+            }
+        }
+        for(int i = 0; i < rooms.Count;i++)
+        {
+            if (rooms[i].hallwaysCount == 1 && i != 0)
+            {
+                rooms[i].isBossRoom = true;
+                break;
+            }
+        }
+    }
+    bool FindDoor(int x,int y)
+    {
+        if(grid[x, y] == CellType.Hallway)
+        {
+            if (CountNeighbour(x, y, CellType.Hallway) == 1 && CountNeighbour(x, y, CellType.Room) == 1 )
+            {
+                return true;
+            }
+        }
+        return false;
+        
+    }
+    int CountNeighbour(int x,int y,CellType cell)
+    {
+        int counter = 0;
+        if(grid.Size.x > x)
+        {
+            if (grid[x + 1, y] == cell)
+            {
+                roomPosition = new Vector2(x + 1, y);
+                counter++;
+            }
+        }
+        if (x > 0)
+        {
+            if (grid[x - 1, y] == cell)
+            {
+                roomPosition = new Vector2(x - 1, y);
+                counter++;
+            }
+        }
+        if (y > 0)
+        {
+            if (grid[x , y - 1] == cell)
+            {
+                roomPosition = new Vector2(x, y - 1);
+                counter++;
+            }
+        }
+        if (grid.Size.y > y)
+        {
+            if (grid[x, y + 1] == cell)
+            {
+                roomPosition = new Vector2(x, y + 1);
+                counter++;
+            }
+        }
+        return counter;
     }
 }

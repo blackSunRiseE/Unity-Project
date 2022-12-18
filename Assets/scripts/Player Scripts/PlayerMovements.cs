@@ -6,7 +6,7 @@ public class PlayerMovements : MonoBehaviour
 {
 
     public float moveSpeed;
-    public float RunningSpeed = 5;
+    public float RunningSpeed = 15;
     public float WalkingSpeed = 2;
     [SerializeField] float gravity = -9.81f;
 

@@ -17,7 +17,7 @@ public class DamagedState : BaseState
     public override void UpdateState(BaseMeleeEnemyAI stateControler)
     {
         
-        if (lastDamagedTime + stateControler.animationDuration < Time.time)
+        if (lastDamagedTime + stateControler.damagedAnimationDuration < Time.time)
         {
             if(stateControler.Hp <= 0)
             {

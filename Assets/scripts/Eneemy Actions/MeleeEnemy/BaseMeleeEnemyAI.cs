@@ -26,7 +26,8 @@ public class BaseMeleeEnemyAI : BaseEnemyAI
     private float lastAttackTime;
     
     [HideInInspector] public Animator animator;
-    [HideInInspector] public float animationDuration;
+    [HideInInspector] public float damagedAnimationDuration;
+    [HideInInspector] public float deadAnimationDuration;
 
     [HideInInspector] public bool getHit = false;
 
@@ -93,8 +94,20 @@ public class BaseMeleeEnemyAI : BaseEnemyAI
 
     public override void TakeDamage(float damage)
     {
-        animationDuration = animator.runtimeAnimatorController.animationClips[2].length;
+        damagedAnimationDuration = animator.runtimeAnimatorController.animationClips[2].length;
         getHit = true;
         Hp -= damage;
+    }
+
+    public void DestroyEnemy()
+    {
+        deadAnimationDuration = animator.runtimeAnimatorController.animationClips[3].length;
+        Destroy(gameObject, deadAnimationDuration);
+        
+    }
+
+    private void OnDestroy()
+    {
+        Main.EnemyDeath(transform.position);
     }
 }
