@@ -4,27 +4,29 @@ using UnityEngine;
 
 public class ChaseState : BaseState
 {
-    // Start is called before the first frame update
     public override void EnterState(BaseMeleeEnemyAI stateControler)
     {
-        Debug.Log("Chase");
         stateControler.animator.SetBool("isChase", true);
-        // chase animations
     }
+
     public override void UpdateState(BaseMeleeEnemyAI stateControler)
     {
-        stateControler.chasePlayer(stateControler.player, stateControler.moveSpeed);
-        float distanceToPlayer = stateControler.getDistanceToPlayer();
+        stateControler.ChasePlayer(stateControler.player, stateControler.moveSpeed);
+        float distanceToPlayer = stateControler.GetDistanceToPlayer();
         if (stateControler.getHit)
         {
-            StateExit(stateControler.Damaged,stateControler);
-        }
-        if (distanceToPlayer > stateControler.chaseRange)
-        {
-            StateExit(stateControler.Idle, stateControler);
+            if (stateControler.health <= 0)
+            {
+                StateExit(stateControler.Dead, stateControler);
+            }
+            else
+            {
+                StateExit(stateControler.Damaged, stateControler);
+            }
         }
         else if(distanceToPlayer < stateControler.attackRange)
         {
+            stateControler.StopUnit();
             StateExit(stateControler.Attack, stateControler);
         }
         
@@ -35,6 +37,4 @@ public class ChaseState : BaseState
         stateControler.animator.SetBool("isChase", false);
         stateControler.SwitchState(state);
     }
-    
-
 }

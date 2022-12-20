@@ -6,26 +6,27 @@ public class BossIdleState : BaseBossState
 {
     public override void EnterState(BaseBossAI stateControler)
     {
-        Debug.Log("Idle");
         stateControler.animator.SetBool("IsIdle", true);
     }
 
-    // Update is called once per frame
     public override void UpdateState(BaseBossAI stateControler)
     {
-        float distanceToPlayer = stateControler.getDistanceToPlayer();
-        if (stateControler.health < 300)
-        {
-            StateExit(stateControler.Attack1,stateControler);
-        }
         if (stateControler.getHit)
         {
-            StateExit(stateControler.GetHit, stateControler);
+            if (stateControler.health <= 0)
+            {
+                StateExit(stateControler.Dead, stateControler);
+            }
+            else
+            {
+                StateExit(stateControler.Damaged, stateControler);
+            }
         }
-        if(distanceToPlayer > 20)
+        else
         {
-            StateExit(stateControler.Attack1,stateControler);
+            StateExit(stateControler.Chase, stateControler);
         }
+        
     }
 
     public void StateExit(BaseBossState state, BaseBossAI stateControler)

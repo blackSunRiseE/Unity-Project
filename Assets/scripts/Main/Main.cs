@@ -1,11 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Main : MonoBehaviour
 {
-
-    // Start is called before the first frame update
 
     [SerializeField] Generator2D generator2D;
     [SerializeField] GameObject wall;
@@ -15,6 +15,9 @@ public class Main : MonoBehaviour
     [SerializeField] GameObject top;
     [SerializeField] GameObject main;
     [SerializeField] GameObject furniture1;
+    [SerializeField] GameObject furniture2;
+    [SerializeField] GameObject furniture3;
+    [SerializeField] GameObject furniture4;
     [SerializeField] GameObject bossFurniture;
     [SerializeField] GameObject key;
     [SerializeField] GameObject flask;
@@ -22,6 +25,10 @@ public class Main : MonoBehaviour
 
     [SerializeField] GameObject player;
     [SerializeField] GameObject meleeEnemy;
+    [HideInInspector] public bool gameOver;
+    [HideInInspector] public bool gameWin = false;
+    [SerializeField] GameOver gameOverScreen;
+    [SerializeField] TextController textController;
     float wallXOffSet = 0;
     float wallYOffSet = 0;
     static bool enemyDeath = false;
@@ -34,16 +41,27 @@ public class Main : MonoBehaviour
     {
         GetGrid();
         SpawnPlayer();
-        currentRoom =  generator2D.GetRoom(GetPlayerPosition());
+        currentRoom =  generator2D.GetRoom(GetPlayerPosition(),0);
         prevRoom = currentRoom;
-        //SpawnMob();
         PlaceFurniture();
-        //placeWalls();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (gameOver)
+        {
+            if (gameWin)
+            {
+                textController.SetText("You Win");
+            }
+            else
+            {
+                textController.SetText("You Lose");
+            }
+            GameObject.FindGameObjectWithTag("Player").GetComponent<HideCursor>().SwitchState(true);
+            gameOverScreen.OpenMenu();
+
+        }
         if (currentRoom != null)
         {
             if (CheckRoomChanges())
@@ -66,12 +84,13 @@ public class Main : MonoBehaviour
             enemyDeath = false;
         }
 
+
         
     }
 
     void GetGrid()
     {
-        generator2D.Generate();
+        generator2D.Generate(BitConverter.ToInt32(System.Guid.NewGuid().ToByteArray(),0));
         generator2D.ChooseBossRoom();
         grid = generator2D.grid;
         for(int i = 0; i < grid.Size.x; i++)
@@ -108,39 +127,6 @@ public class Main : MonoBehaviour
             }
         }
     }
-
-    /*void placeWalls()
-    {
-        foreach(var room in generator2D.rooms)
-        {
-            for(int i= room.bounds.x; i < room.bounds.xMax; i++)
-            {
-                for (int j = room.bounds.y; j < room.bounds.yMax; j++)
-                {
-                    if (i == room.bounds.x)
-                    {
-                        Instantiate(wall, new Vector3(transform.position.x + i *4+2, 0, transform.position.z + j*4+2), Quaternion.Euler(0f, 90f, 0f));
-                    }
-                    else if(i == room.bounds.xMax-1)
-                    {
-                        Instantiate(wall, new Vector3(transform.position.x + i * 4 + 2, 0, transform.position.z + j * 4 + 2), Quaternion.Euler(0f,90f,0f));
-                    }
-                    else if (j == room.bounds.y)
-                    {
-                        Instantiate(wall, new Vector3(transform.position.x + i * 4 + 2, 0, transform.position.z + j * 4 + 2), Quaternion.identity);
-                    }
-                    else if (j == room.bounds.yMax-1)
-                    {
-                        Instantiate(wall, new Vector3(transform.position.x + i * 4 + 2, 0, transform.position.z + j * 4 + 2), Quaternion.identity);
-                    }
-
-                }
-            }
-            
-        }
-        
-    }*/
-
 
     bool IsNeighbourNone(Grid2D<Generator2D.CellType> grid, int x, int y)
     {
@@ -219,7 +205,7 @@ public class Main : MonoBehaviour
 
         if (IsDoor(grid, x, y))
         {
-            if(!generator2D.GetRoom(new Vector3(x + offset[0].x, 0, y + offset[0].y)).isBossRoom)
+            if(!generator2D.GetRoom(new Vector3(x + offset[0].x, 0, y + offset[0].y),0).isBossRoom)
             {
                 Instantiate(door, new Vector3(transform.position.x + x * 4 + offset[0].x, 0.14f, transform.position.z + y * 4 + offset[0].y),
                                 rotation[0], main.transform);
@@ -229,7 +215,6 @@ public class Main : MonoBehaviour
                 Instantiate(bossDoor, new Vector3(transform.position.x + x * 4 + offset[0].x, 0.14f, transform.position.z + y * 4 + offset[0].y),
                                 rotation[0], main.transform);
             }
-            Debug.Log(generator2D.GetRoom(new Vector3(x + offset[0].x, 0, y + offset[0].y)).isBossRoom);
             
 
         }
@@ -283,18 +268,11 @@ public class Main : MonoBehaviour
         Instantiate(floor, new Vector3(transform.position.x + x * 4, 0, transform.position.z + y * 4), Quaternion.identity,main.transform);
     }
 
-    void SpawnMob()
-    {
-        Vector3 enemy = new Vector3(transform.position.x + generator2D.rooms[0].bounds.x * 4 + 10, 2, transform.position.z + generator2D.rooms[0].bounds.y * 4 + 6);
-        Instantiate(meleeEnemy, enemy, Quaternion.identity, main.transform);
-    }
-
-
     void PlaceFurniture()
     {
+        List<GameObject> allFurtiture = new List<GameObject>() { furniture1, furniture2, furniture3, furniture4 };
         for(int i = 0; i < generator2D.rooms.Count; i++)
         {
-            Debug.Log(generator2D.rooms[i].isBossRoom);
             Vector3 place = new Vector3(generator2D.rooms[i].bounds.x * 4 + transform.position.x + generator2D.rooms[i].bounds.width * 4 / 2, 0, transform.position.z + generator2D.rooms[i].bounds.y * 4 + generator2D.rooms[i].bounds.height * 4 / 2);
             GameObject EmptyObj = new GameObject(string.Format("Room{0}", generator2D.rooms[i].ID));
             EmptyObj.transform.parent = main.transform;
@@ -304,15 +282,14 @@ public class Main : MonoBehaviour
             }
             else
             {
-                Instantiate(furniture1, place, Quaternion.identity, EmptyObj.transform);
+                Instantiate(allFurtiture[UnityEngine.Random.Range(0, 3)], place, Quaternion.identity, EmptyObj.transform);
             }
             
         }
     }
-
     bool CheckRoomChanges()
     {
-        var room = generator2D.GetRoom(GetPlayerPosition());
+        var room = generator2D.GetRoom(GetPlayerPosition(),2);
         if(room != null)
         {
             if (room.ID != currentRoom.ID)
@@ -328,7 +305,7 @@ public class Main : MonoBehaviour
     Vector3 GetPlayerPosition()
     {
         Transform playerPosition = main.transform.Find("Player(Clone)").transform;
-        return new Vector3(playerPosition.position.x / 4 + 2, 2, playerPosition.position.z / 4 + 2);
+        return new Vector3(playerPosition.position.x / 4 , 2, playerPosition.position.z / 4);
     }
 
     bool ActivateMobs()
@@ -352,6 +329,7 @@ public class Main : MonoBehaviour
     void CloseDoors()
     {
         DoorControler.isAvailible = false;
+        BossDoorControler.isAvailible = false;
     }
 
     public static void EnemyDeath(Vector3 position)
@@ -363,8 +341,8 @@ public class Main : MonoBehaviour
 
     bool IsAllEnemyDead()
     {
-        int enemyCounter = 0;
         Transform current = main.transform.Find(string.Format("Room{0}", currentRoom.ID)).GetChild(0);
+
         foreach (Transform child in current)
         {
             if (child.CompareTag("Enemy"))
@@ -381,11 +359,12 @@ public class Main : MonoBehaviour
     void OpenDoors()
     {
         DoorControler.isAvailible = true;
+        BossDoorControler.isAvailible = true;
     }
 
     void SpawnReward()
     {
-        if(PlayerTarget.keys == PlayerTarget.maxKeys)
+        if(PlayerTarget.keys >= PlayerTarget.maxKeys)
         {
             Instantiate(flask, lastMobPosition, Quaternion.identity, main.transform);
         }
@@ -393,7 +372,5 @@ public class Main : MonoBehaviour
         {
             Instantiate(key, lastMobPosition, Quaternion.identity, main.transform);
         }
-        
     }
-
 }

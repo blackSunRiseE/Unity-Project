@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class FirstPersonCamera : MonoBehaviour
 {
-    // Start is called before the first frame update
 
     public Transform playerBody;
     float mouseSensitivity = 500;
@@ -15,7 +14,6 @@ public class FirstPersonCamera : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    // Update is called once per frame
     void Update()
     {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;

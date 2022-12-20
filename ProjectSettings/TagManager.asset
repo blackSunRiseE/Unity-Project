@@ -7,6 +7,10 @@ TagManager:
   - Enemy
   - Health Bar
   - Key
+  - Projectile
+  - Obstacle
+  - Game Over
+  - Spawner
   layers:
   - Default
   - TransparentFX
@@ -17,7 +21,7 @@ TagManager:
   - Ground
   - Player
   - Enemy
-  - 
+  - Projectiles
   - 
   - 
   - 

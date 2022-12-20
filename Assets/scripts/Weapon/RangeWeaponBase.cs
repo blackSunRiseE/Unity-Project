@@ -13,13 +13,11 @@ public class RangeWeaponBase : MonoBehaviour
     [SerializeField] private float projSpeed = 30;
     [SerializeField] private float damage = 10;
     private Vector3 destination;
-    // Start is called before the first frame update
     void Start()
     {
         
     }
 
-    // Update is called once per frame
     void Update()
     {
 
@@ -44,14 +42,12 @@ public class RangeWeaponBase : MonoBehaviour
     {
         if (LastShootTime + ShootDelay < Time.time)
         {
-            ///add different spells from projecttile prefab
             InstantiateProjecttile();
             LastShootTime = Time.time;
 
         }
         if (hit.transform.tag == "Enemy")
         {
-            Debug.Log("Shoot");
             BaseEnemyAI target = hit.transform.GetComponent<BaseEnemyAI>();
             target.TakeDamage(damage);
         }

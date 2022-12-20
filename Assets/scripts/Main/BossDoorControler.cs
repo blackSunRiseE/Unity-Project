@@ -34,7 +34,7 @@ public class BossDoorControler : MonoBehaviour
             open = false;
             isInteract = false;
         }
-        if (Input.GetKeyDown(KeyCode.F) && enter && PlayerTarget.keys == PlayerTarget.maxKeys)
+        if (Input.GetKeyDown(KeyCode.F) && enter && PlayerTarget.keys >= PlayerTarget.maxKeys)
         {
             open = !open;
             currentRotationAngle = transform.GetChild(0).GetChild(0).localEulerAngles.y;
@@ -47,13 +47,13 @@ public class BossDoorControler : MonoBehaviour
     {
         if (enter)
         {
-            if(PlayerTarget.keys == PlayerTarget.maxKeys)
+            if(PlayerTarget.keys >= PlayerTarget.maxKeys)
             {
                 GUI.Label(new Rect(Screen.width / 2 - 75, Screen.height - 100, 155, 30), "Press 'F' to " + (open ? "close" : "open") + " the door");
             }
             else
             {
-                GUI.Label(new Rect(Screen.width / 2 - 75, Screen.height - 100, 155, 60), "Collect all keys to open the door");
+                GUI.Label(new Rect(Screen.width / 2 - 75, Screen.height - 50, 155, 60), "Collect all keys to open the door");
             }
         }
             

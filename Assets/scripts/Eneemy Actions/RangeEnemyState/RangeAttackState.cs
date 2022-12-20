@@ -6,29 +6,40 @@ public class RangeAttackState : BaseRangeState
 {
     public override void EnterState(RangeEnemyAI stateControler)
     {
-        Debug.Log("Attack");
+        stateControler.lastAttackTime = Time.time;
+        //stateControler.animator.SetBool("isAttack", true);
         //animator
     }
     public override void UpdateState(RangeEnemyAI stateControler)
     {
         float distanceToPlayer = stateControler.getDistanceToPlayer();
-        stateControler.ShootPlayer();
-        if (distanceToPlayer < stateControler.enemyRangeToRun)
+        
+        if (stateControler.getHit)
         {
-            stateControler.GetPlayerState();
-            if (stateControler.weaponState == WeaponState.MeleeWeapon)
+            if (stateControler.health <= 0)
             {
-                StateExit(stateControler.Move, stateControler);
+                StateExit(stateControler.Dead, stateControler);
             }
             else
             {
-                StateExit(stateControler.Strafe, stateControler);
+                StateExit(stateControler.Damaged, stateControler);
             }
         }
+        else if (!stateControler.PlayerOnSigth())
+        {
+            StateExit(stateControler.Chase, stateControler);
+        }
+        else
+        {
+            stateControler.ShootPlayer();
+        }
+        
+        
     }
 
     public void StateExit(BaseRangeState state, RangeEnemyAI stateControler)
     {
+        stateControler.animator.SetBool("isAttack", false);
         stateControler.SwitchState(state);
     }
 }

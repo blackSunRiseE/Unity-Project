@@ -7,26 +7,19 @@ public class DamagedState : BaseState
     float lastDamagedTime;
     public override void EnterState(BaseMeleeEnemyAI stateControler)
     {
+        
+        stateControler.StopUnit(stateControler.transform.position);
         lastDamagedTime = Time.time;
-        stateControler.stopUnit();
-        Debug.Log("Damaged");
-        stateControler.animator.SetBool("isDamaged",true);
-        //start idle animation
-
+        stateControler.animator.SetBool("isDamaged", true);
     }
+
     public override void UpdateState(BaseMeleeEnemyAI stateControler)
     {
         
         if (lastDamagedTime + stateControler.damagedAnimationDuration < Time.time)
         {
-            if(stateControler.Hp <= 0)
-            {
-                StateExit(stateControler.Dead, stateControler);
-            }
-            Debug.Log("exit");
             StateExit(stateControler.prevState, stateControler);
         }
-        
     }
 
     public void StateExit(BaseState state, BaseMeleeEnemyAI stateControler)

@@ -7,23 +7,23 @@ public class BossGetHitState : BaseBossState
     float lastDamagedTime;
     public override void EnterState(BaseBossAI stateControler)
     {
+        stateControler.StopUnit(stateControler.transform.position);
         lastDamagedTime = Time.time;
-        //stateControler.stopUnit();
-        Debug.Log("Damaged");
         stateControler.animator.SetBool("IsDamaged", true);
     }
-
-    // Update is called once per frame
     public override void UpdateState(BaseBossAI stateControler)
     {
-        if (lastDamagedTime + stateControler.animationDuration < Time.time)
+        if (lastDamagedTime + stateControler.damagedAnimationDuration < Time.time)
         {
-            if (stateControler.health <= 0)
+            if (stateControler.health <= stateControler.maxHealth / 2 && !stateControler.isSpawn)
             {
-                StateExit(stateControler.Dead, stateControler);
+                stateControler.isSpawn = true;
+                StateExit(stateControler.Spawn, stateControler);
             }
-            Debug.Log("exit");
-            StateExit(stateControler.prevState, stateControler);
+            else
+            {
+                StateExit(stateControler.prevState, stateControler);
+            }
         }
     }
 

@@ -5,35 +5,50 @@ using UnityEngine.AI;
 
 public class BaseBossAI : BaseEnemyAI
 {
+    [SerializeField] LayerMask aimMask;
     BaseBossState currentState;
     [HideInInspector] public BaseBossState prevState;
-    [HideInInspector] public Animator animator;
-    [SerializeField] public Transform player;
-    [HideInInspector] public bool getHit = false;
-    [HideInInspector] public float animationDuration;
-    [HideInInspector] public float attackRange = 4;
-
-    private NavMeshAgent enemy;
-
-    [HideInInspector] public float health = 500;
-
+    [HideInInspector] public Transform player;
+    [HideInInspector] public float attackRange = 5f;
+    [SerializeField] public float moveSpeed;
+    [SerializeField] public float chaseRange = 4f;
+    [SerializeField] public float attackDelay = 1f;
+    [SerializeField] public float attackDamage = 10f;
+    [HideInInspector] public float spawnTime;
+    Vector3 startPosition;
+    
+    private float lastAttackTime;
+    [HideInInspector] public float rangeAttackTime;
+    [HideInInspector] public float rangeAttackDelay = 10f;
+    [HideInInspector] public bool isShoot = false;
+    [HideInInspector] public bool isSpawn = false;
 
     [HideInInspector] public BossIdleState Idle = new BossIdleState();
-    [HideInInspector] public BossAttack1State Attack1 = new BossAttack1State();
-    [HideInInspector] public BossAttack1State Attack2 = new BossAttack1State();
+    [HideInInspector] public BossMeleeAttackState MeleeAttack = new BossMeleeAttackState();
+    [HideInInspector] public BossRangeAttackState RangeAttack = new BossRangeAttackState();
     [HideInInspector] public BossDeadState Dead = new BossDeadState();
     [HideInInspector] public BossChaseState Chase = new BossChaseState();
-    [HideInInspector] public BossGetHitState GetHit = new BossGetHitState();
+    [HideInInspector] public BossGetHitState Damaged = new BossGetHitState();
+    [HideInInspector] public BossSpawnState Spawn = new BossSpawnState();
+    [SerializeField] GameObject projectile;
+    [SerializeField] GameObject spiderlingsPrefab;
+    [SerializeField] Transform spawnPosition;
+    [SerializeField] private Transform firePoint;
+    [SerializeField] public float enemyProjectileSpeed = 50f;
 
-    // Start is called before the first frame update
+
     void Start()
     {
+        maxHealth = 200;
+        player = GameObject.FindWithTag("Player").transform;
+        enemy = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        startPosition = transform.position;
+        rangeAttackTime = Time.time;
+        health = maxHealth;
         SwitchState(Idle);
-        
     }
 
-    // Update is called once per frame
     void Update()
     {
         currentState.UpdateState(this);
@@ -45,28 +60,67 @@ public class BaseBossAI : BaseEnemyAI
         currentState = state;
         currentState.EnterState(this);
     }
-    public float getDistanceToPlayer()
+    public float GetDistanceToPlayer()
     {
         return Vector3.Distance(transform.position, player.position);
     }
 
     public void ShootPlayer()
     {
-
-    }
-
-    public void ChasePlayer()
-    {
         Vector3 playerPosition = new Vector3(player.position.x,
                                              transform.position.y,
                                              player.position.z);
-        enemy.SetDestination(playerPosition);
+        transform.LookAt(playerPosition);
+        
+        for(int i = 0; i < 10; i++)
+        {
+            Vector3 direction = (player.transform.position - transform.position).normalized;
+            direction = Quaternion.Euler(0, -36*i, 0) * direction;
+            Ray ray = new Ray(transform.position, direction);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, aimMask))
+            {
+                ShootProjectile(hit, ray);
+            }
+        }
+        
+
     }
 
-    public override void TakeDamage(float damage)
+    void ShootProjectile(RaycastHit hit, Ray ray)
     {
-        animationDuration = animator.runtimeAnimatorController.animationClips[2].length;
-        getHit = true;
-        health -= damage;
+        var projectileObj = Instantiate(projectile, firePoint.position, Quaternion.identity);
+        projectileObj.GetComponent<Rigidbody>().velocity = (hit.point - firePoint.position).normalized * enemyProjectileSpeed;
     }
+
+    public void SpawnSpidelings()
+    {
+        for(int i = 0; i < 10; i++)
+        {
+            
+            Instantiate(spiderlingsPrefab, new Vector3(spawnPosition.position.x + Random.Range(1f,4f), spawnPosition.position.y, spawnPosition.position.z + Random.Range(1f, 4f)) , Quaternion.identity);
+        }
+        
+    }
+
+    public void DealDamage(Transform selfPosition, Vector3 playerPosition,float lastAttackTime,float attackDelayTime,float attackDamage)
+    {
+        Vector3 playerPos = new Vector3(playerPosition.x,
+                                             selfPosition.position.y,
+                                             playerPosition.z);
+        transform.LookAt(playerPos);
+        PlayerTarget target = player.GetComponent<PlayerTarget>();
+        if (lastAttackTime + attackDelayTime < Time.time)
+        {
+            target.TakeDamage(attackDamage);
+            lastAttackTime = Time.time;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        Main.EnemyDeath(transform.position);
+    }
+
+    
 }

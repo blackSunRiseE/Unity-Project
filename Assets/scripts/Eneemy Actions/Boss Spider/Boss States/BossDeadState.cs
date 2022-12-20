@@ -4,12 +4,15 @@ using UnityEngine;
 
 public class BossDeadState : BaseBossState
 {
-    // Start is called before the first frame update
     public override void EnterState(BaseBossAI stateControler)
     {
+        stateControler.StopUnit(stateControler.transform.position);
+        stateControler.animator.SetBool("IsDead", true);
+        stateControler.DestroyEnemy(stateControler.gameObject);
+        GameObject.FindGameObjectWithTag("Spawner").GetComponent<Main>().gameOver = true;
+        GameObject.FindGameObjectWithTag("Spawner").GetComponent<Main>().gameWin = true;
     }
 
-    // Update is called once per frame
     public override void UpdateState(BaseBossAI stateControler)
     {
     }

@@ -4,26 +4,28 @@ using UnityEngine;
 
 public class AttackState : BaseState
 {
-    // Start is called before the first frame update
     public override void EnterState(BaseMeleeEnemyAI stateControler)
     {
-        Debug.Log("attack");
         stateControler.animator.SetBool("isAttack", true);
-        // attack animation
     }
     public override void UpdateState(BaseMeleeEnemyAI stateControler)
     {
-        
-        stateControler.dealDamage();
-        float distanceToPlayer = stateControler.getDistanceToPlayer();
+        stateControler.LookAtPlayer();
+        float distanceToPlayer = stateControler.GetDistanceToPlayer();
 
-        if (stateControler.Hp <= 0)
+        if (stateControler.getHit)
         {
-            StateExit(stateControler.Dead, stateControler);
+            if (stateControler.health <= 0)
+            {
+                StateExit(stateControler.Dead, stateControler);
+            }
+            else
+            {
+                StateExit(stateControler.Damaged, stateControler);
+            }
         }
         if (distanceToPlayer > stateControler.attackRange)
         {
-            Debug.Log("melee Attack");
             StateExit(stateControler.Chase, stateControler);
         }
     }

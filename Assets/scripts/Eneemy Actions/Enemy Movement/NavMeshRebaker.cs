@@ -14,10 +14,8 @@ public class NavMeshRebaker : MonoBehaviour
     }
     public void Rebake()
     {
-        Debug.Log(surfaces.Length);
         for (int i = 0; i < surfaces.Length; i++)
         {
-            Debug.Log(surfaces[i]);
             surfaces[i].BuildNavMesh();
         }
     }

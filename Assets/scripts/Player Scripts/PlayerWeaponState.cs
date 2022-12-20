@@ -40,13 +40,13 @@ public class PlayerWeaponState : MonoBehaviour
     {
         if(weaponState == WeaponState.MeleeWeapon)
         {
-            Player.GetChild(1).GetChild(1).gameObject.SetActive(true);
-            Player.GetChild(1).GetChild(0).gameObject.SetActive(false);
+            Player.GetChild(0).GetChild(1).gameObject.SetActive(true);
+            Player.GetChild(0).GetChild(0).gameObject.SetActive(false);
         }
         else
         {
-            Player.GetChild(1).GetChild(1).gameObject.SetActive(false);
-            Player.GetChild(1).GetChild(0).gameObject.SetActive(true);
+            Player.GetChild(0).GetChild(1).gameObject.SetActive(false);
+            Player.GetChild(0).GetChild(0).gameObject.SetActive(true);
         }
     }
 }

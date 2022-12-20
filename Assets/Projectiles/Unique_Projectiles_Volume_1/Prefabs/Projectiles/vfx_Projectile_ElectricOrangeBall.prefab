@@ -14895,9 +14895,9 @@ GameObject:
   - component: {fileID: 65138394354385980}
   - component: {fileID: 54780134100305680}
   - component: {fileID: 5436968104845320611}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: vfx_Projectile_ElectricOrangeBall
-  m_TagString: Untagged
+  m_TagString: Projectile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

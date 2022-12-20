@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class DeadState : BaseState
 {
-    // Start is called before the first frame update
     public override void EnterState(BaseMeleeEnemyAI stateControler)
     {
+        stateControler.StopUnit();
         stateControler.animator.SetBool("isDead", true);
         stateControler.DestroyEnemy();
-        //start idle animation
 
     }
     public override void UpdateState(BaseMeleeEnemyAI stateControler)

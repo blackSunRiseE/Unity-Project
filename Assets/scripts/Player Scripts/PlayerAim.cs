@@ -10,7 +10,6 @@ public class PlayerAim : MonoBehaviour
 
     //[SerializeField] Transform aimPos;
     [HideInInspector] public Vector3 actualAimPos;
-    [SerializeField] float aimSmoothSpeed =  20;
     [SerializeField] LayerMask aimMask;
     float rotationX = 0;
 
@@ -33,18 +32,6 @@ public class PlayerAim : MonoBehaviour
         xAxis += Input.GetAxisRaw("Mouse X") * mouseSense;
         yAxis -= Input.GetAxisRaw("Mouse Y") * mouseSense;
         yAxis = Mathf.Clamp(yAxis, -80, 80);
-
-        Vector2 screenCenter = new Vector2(Screen.width / 2, Screen.height / 2);
-
-        Ray ray = Camera.main.ScreenPointToRay(screenCenter);
-        RaycastHit hit;
-
-        /*if (Physics.Raycast(ray, out hit, Mathf.Infinity, aimMask))
-        {
-            aimPos.position = Vector3.Lerp(aimPos.position, hit.point, aimSmoothSpeed * Time.deltaTime);
-        }*/
-
-
     }
 
 

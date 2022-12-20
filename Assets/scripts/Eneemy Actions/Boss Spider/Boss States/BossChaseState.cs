@@ -9,15 +9,32 @@ public class BossChaseState : BaseBossState
         stateControler.animator.SetBool("IsChase", true);
     }
 
-    // Update is called once per frame
     public override void UpdateState(BaseBossAI stateControler)
     {
-        float distanceToPlayer = stateControler.getDistanceToPlayer();
-        stateControler.ChasePlayer();
-        if(distanceToPlayer < stateControler.attackRange)
+        float distanceToPlayer = stateControler.GetDistanceToPlayer();
+        stateControler.ChasePlayer(stateControler.player,stateControler.moveSpeed);
+        if (distanceToPlayer < stateControler.attackRange)
         {
-            StateExit(stateControler.Attack2, stateControler);
+            stateControler.StopUnit(stateControler.transform.position);
+            StateExit(stateControler.MeleeAttack, stateControler);
         }
+        if (stateControler.getHit)
+        {
+            if (stateControler.health <= 0)
+            {
+                StateExit(stateControler.Dead, stateControler);
+            }
+            else
+            {
+                StateExit(stateControler.Damaged, stateControler);
+            }
+        }
+        if (stateControler.rangeAttackTime + stateControler.rangeAttackDelay < Time.time)
+        {
+            stateControler.StopUnit(stateControler.transform.position);
+            StateExit(stateControler.RangeAttack, stateControler);
+        }
+        
     }
 
     public void StateExit(BaseBossState state, BaseBossAI stateControler)

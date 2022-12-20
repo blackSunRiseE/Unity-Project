@@ -7,15 +7,13 @@ public class RangeEnemyAI : BaseEnemyAI
 {
     // Start is called before the first frame update
     [SerializeField] LayerMask aimMask;
-    [SerializeField] public Transform player;
-    [SerializeField] public float moveSpeed;
-    [SerializeField] public float attackRange = 20;
-    [SerializeField] public float attackDelay = 1;
-    [SerializeField] public float attackDamage = 10;
-    [SerializeField] public float Hp = 50;
-    [SerializeField] public float enemyProjectileSpeed = 50;
-    [SerializeField] public float enemyRangeToRun = 40;
-    private NavMeshAgent enemy;
+    [HideInInspector] public Transform player;
+    [HideInInspector] public float moveSpeed = 2f;
+    [SerializeField] public float attackRange = 20f;
+    float attackDelay = 3f;
+    [SerializeField] public float attackDamage = 10f;
+    [SerializeField] public float enemyProjectileSpeed = 50f;
+    [SerializeField] public float enemyRangeToRun = 40f;
 
     BaseRangeState currentState;
     [HideInInspector] public BaseRangeState prevState;
@@ -23,25 +21,25 @@ public class RangeEnemyAI : BaseEnemyAI
     [HideInInspector] public RangeIdleState Idle = new RangeIdleState();
     [HideInInspector] public RangeAttackState Attack = new RangeAttackState();
     [HideInInspector] public RangeMoveState Move = new RangeMoveState();
-    [HideInInspector] public RangeStrafeState Strafe = new RangeStrafeState();
+    [HideInInspector] public RangeChaseState Chase = new RangeChaseState();
+    [HideInInspector] public RangeDamagedState Damaged = new RangeDamagedState();
+    [HideInInspector] public RangeDeadState Dead = new RangeDeadState();
     [SerializeField] GameObject projectile;
     [SerializeField] private Transform firePoint;
 
-    private float lastAttackTime;
-    Vector3 positionBeforeStrafe;
-    Vector3 trans = Vector3.left;
+    bool animationStart = true;
+    bool animationStop = false;
+    public float lastAttackTime;
 
-    [HideInInspector] public Animator animator;
-    [HideInInspector] public float animationDuration;
-
-    [HideInInspector] public bool getHit = false;
     [HideInInspector] public WeaponState weaponState;
 
     // Start is called before the first frame update
     void Start()
     {
+        player = GameObject.FindWithTag("Player").transform;
         enemy = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        health = maxHealth;
         SwitchState(Idle);
     }
 
@@ -69,16 +67,29 @@ public class RangeEnemyAI : BaseEnemyAI
                                              transform.position.y,
                                              player.position.z);
         transform.LookAt(playerPosition);
+        if(lastAttackTime + attackDelay - 0.5f < Time.time && animationStart)
+        {
+            animator.SetBool("isAttack", true);
+            animationStart = false;
+        }
         if (lastAttackTime + attackDelay < Time.time)
         {
+            
             Vector3 direction = (player.transform.position - transform.position).normalized;
             Ray ray = new Ray(transform.position, direction);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, aimMask))
             {
-                ShootProjectile(hit,ray);
+                ShootProjectile(hit, ray);
             }
+            animationStart = true;
+            animationStop = true;
             lastAttackTime = Time.time;
+        }
+        if(lastAttackTime + 0.5f < Time.time && animationStop)
+        {
+            animator.SetBool("isAttack", false);
+            animationStop = false;
         }
     }
 
@@ -86,17 +97,6 @@ public class RangeEnemyAI : BaseEnemyAI
     {
         var projectileObj = Instantiate(projectile, firePoint.position, Quaternion.identity);
         projectileObj.GetComponent<Rigidbody>().velocity = (hit.point - firePoint.position).normalized * enemyProjectileSpeed;
-    }
-    
-    public void getPositionBeforeStrafe()
-    {
-        positionBeforeStrafe = transform.position;
-    }
-
-    public void StrafeFromPlayer()
-    {
-        //transform.LookAt(playerPosition);
-        
     }
 
     public void RunAwayFromPlayer()
@@ -123,14 +123,34 @@ public class RangeEnemyAI : BaseEnemyAI
         {
             weaponState = WeaponState.MeleeWeapon;
         }
-        
+
     }
 
-    public override void TakeDamage(float damage)
+    public bool PlayerOnSigth()
     {
-        animationDuration = animator.runtimeAnimatorController.animationClips[2].length;
-        getHit = true;
-        Hp -= damage;
+        Vector3 direction = (player.transform.position - transform.position).normalized;
+        Ray ray = new Ray(transform.position, direction);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, aimMask))
+        {
+            return !hit.transform.CompareTag("Obstacle");
+        }
+        return false;
+    }
+
+    public void StopUnit()
+    {
+        enemy.SetDestination(transform.position);
+    }
+    public void DestroyEnemy()
+    {
+        deadAnimationDuration = 2;
+        Destroy(gameObject, deadAnimationDuration);
+    }
+
+    private void OnDestroy()
+    {
+        Main.EnemyDeath(transform.position);
     }
 
 

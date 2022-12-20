@@ -6,7 +6,7 @@ using UnityEngine;
 public class PlayerTarget : MonoBehaviour
 {
     
-    [SerializeField] public float maxHealth = 50f;
+    [SerializeField] public float maxHealth = 150f;
     [SerializeField] public float health;
     [SerializeField] GameObject keyPrefab;
     [HideInInspector] public static int keys = 0;
@@ -23,12 +23,14 @@ public class PlayerTarget : MonoBehaviour
         GameObject.FindGameObjectWithTag("Health Bar").GetComponent<HealthBar>().SetHealth((int)health);
         if (health <= 0f)
         {
-            Debug.Log("Dies");
+            health = 0;
+            GameObject.FindGameObjectWithTag("Spawner").GetComponent<Main>().gameOver = true;
         }
     }
     public void Heal(float healCount)
     {
         health += healCount;
+        GameObject.FindGameObjectWithTag("Health Bar").GetComponent<HealthBar>().SetHealth((int)health);
     }
     public void AddKey()
     {
@@ -37,9 +39,4 @@ public class PlayerTarget : MonoBehaviour
         keys++;
     }
 
-
-    // Update is called once per frame
-    void Update()
-    {
-    }
 }

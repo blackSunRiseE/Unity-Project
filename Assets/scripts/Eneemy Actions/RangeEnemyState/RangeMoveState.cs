@@ -7,7 +7,7 @@ public class RangeMoveState : BaseRangeState
     // Start is called before the first frame update
     public override void EnterState(RangeEnemyAI stateControler)
     {
-        Debug.Log("Move");
+        stateControler.animator.SetBool("isChase",true);
         //animator
     }
     public override void UpdateState(RangeEnemyAI stateControler)
@@ -20,8 +20,11 @@ public class RangeMoveState : BaseRangeState
         }
     }
 
+
+
     public void StateExit(BaseRangeState state, RangeEnemyAI stateControler)
     {
+        stateControler.animator.SetBool("isChase", false);
         stateControler.SwitchState(state);
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 using Graphs;
-using UnityEditor;
+using System;
 
 public class Generator2D : MonoBehaviour {
     public enum CellType {
@@ -14,22 +14,23 @@ public class Generator2D : MonoBehaviour {
 
     public class Room {
         public RectInt bounds;
-        public GUID ID;
+        public System.Guid ID;
         public bool isFinal = false;
         public bool isBossRoom;
         public int hallwaysCount = 0;
         public Room(Vector2Int location, Vector2Int size) {
             bounds = new RectInt(location, size);
-            ID = GUID.Generate();
+            ID = System.Guid.NewGuid();
         }
 
         public static bool Intersect(Room a, Room b) {
             return !((a.bounds.position.x >= (b.bounds.position.x + b.bounds.size.x)) || ((a.bounds.position.x + a.bounds.size.x) <= b.bounds.position.x)
                 || (a.bounds.position.y >= (b.bounds.position.y + b.bounds.size.y)) || ((a.bounds.position.y + a.bounds.size.y) <= b.bounds.position.y));
         }
-        public bool IsInside(Vector3 playerPosition)
+
+        public bool IsInside(Vector3 playerPosition,float offset)
         {
-            return bounds.xMin <= playerPosition.x && bounds.xMax >= playerPosition.x && bounds.yMin <= playerPosition.z && bounds.yMax >= playerPosition.z;
+            return bounds.xMin + offset <= playerPosition.x && bounds.xMax - offset >= playerPosition.x && bounds.yMin + offset <= playerPosition.z && bounds.yMax - offset >= playerPosition.z;
 
         }
     }
@@ -56,13 +57,8 @@ public class Generator2D : MonoBehaviour {
     HashSet<Prim.Edge> selectedEdges;
     Vector2 roomPosition;
 
-
-    /*void Start() {
-        Generate();
-    }*/
-
-    public void Generate() {
-        random = new Random(0);
+    public void Generate(int seed) {
+        random = new Random(seed);
         grid = new Grid2D<CellType>(size, Vector2Int.zero);
         rooms = new List<Room>();
 
@@ -194,27 +190,13 @@ public class Generator2D : MonoBehaviour {
             }
         }
     }
-
-    /*void PlaceCube(Vector2Int location, Vector2Int size, Material material) {
-        GameObject go = Instantiate(cubePrefab, new Vector3(location.x, 0, location.y), Quaternion.identity);
-        go.GetComponent<Transform>().localScale = new Vector3(size.x, 1, size.y);
-        go.GetComponent<MeshRenderer>().material = material;
-    }
-
-    void PlaceRoom(Vector2Int location, Vector2Int size) {
-        PlaceCube(location, size, redMaterial);
-    }
-
-    void PlaceHallway(Vector2Int location) {
-        PlaceCube(location, new Vector2Int(1, 1), blueMaterial);
-    }*/
-    public Room GetRoom(Vector3 playerPosition)
+    public Room GetRoom(Vector3 playerPosition,float offset)
     {
-        foreach(var room in rooms)
+        for(int i = 0; i < rooms.Count; i++)
         {
-            if (room.IsInside(playerPosition))
+            if (rooms[i].IsInside(playerPosition,offset))
             {
-                return room;
+                return rooms[i];
             }
         }
         return null;
@@ -228,7 +210,7 @@ public class Generator2D : MonoBehaviour {
             {
                 if (FindDoor(i, j))
                 {
-                    GetRoom(new Vector3(roomPosition.x, 0, roomPosition.y)).hallwaysCount++;
+                    GetRoom(new Vector3(roomPosition.x, 0, roomPosition.y),0).hallwaysCount++;
                 }
             }
         }
