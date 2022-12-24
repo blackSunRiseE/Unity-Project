@@ -11,6 +11,7 @@ public class BossIdleState : BaseBossState
 
     public override void UpdateState(BaseBossAI stateControler)
     {
+        float distanceToPlayer = stateControler.GetDistanceToPlayer();
         if (stateControler.getHit)
         {
             if (stateControler.health <= 0)
@@ -22,7 +23,7 @@ public class BossIdleState : BaseBossState
                 StateExit(stateControler.Damaged, stateControler);
             }
         }
-        else
+        else if (distanceToPlayer < stateControler.rangeToStopAct)
         {
             StateExit(stateControler.Chase, stateControler);
         }

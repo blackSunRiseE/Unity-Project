@@ -43,10 +43,7 @@ public class BaseMeleeEnemyAI : BaseEnemyAI
         currentState = state;
         currentState.EnterState(this);
     }
-    public float GetDistanceToPlayer()
-    {
-        return Vector3.Distance(transform.position, player.position);
-    }
+    
 
     public void StopUnit()
     {

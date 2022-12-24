@@ -2,11 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 public class Main : MonoBehaviour
 {
-
+    enum DoorRotation
+    {
+        Left,
+        Right,
+        Top,
+        Bot
+    }
     [SerializeField] Generator2D generator2D;
     [SerializeField] GameObject wall;
     [SerializeField] GameObject door;
@@ -22,15 +29,21 @@ public class Main : MonoBehaviour
     [SerializeField] GameObject key;
     [SerializeField] GameObject flask;
 
+    [SerializeField] GameObject meleeEnemy;
+    [SerializeField] GameObject rangeEnemy;
+    [SerializeField] GameObject spiderEnemy;
 
     [SerializeField] GameObject player;
-    [SerializeField] GameObject meleeEnemy;
+
     [HideInInspector] public bool gameOver;
     [HideInInspector] public bool gameWin = false;
     [SerializeField] GameOver gameOverScreen;
     [SerializeField] TextController textController;
     float wallXOffSet = 0;
     float wallYOffSet = 0;
+    int minMobInRoom = 3;
+    int maxMobInRoom = 7;
+    bool hallwayRoom;
     static bool enemyDeath = false;
     Generator2D.Room prevRoom;
     Generator2D.Room currentRoom;
@@ -41,7 +54,7 @@ public class Main : MonoBehaviour
     {
         GetGrid();
         SpawnPlayer();
-        currentRoom =  generator2D.GetRoom(GetPlayerPosition(),0);
+        currentRoom = generator2D.GetRoom(GetPlayerPosition(), 0);
         prevRoom = currentRoom;
         PlaceFurniture();
     }
@@ -66,11 +79,11 @@ public class Main : MonoBehaviour
         {
             if (CheckRoomChanges())
             {
-                if (ActivateMobs()) 
+                Debug.Log("Changes");
+                if (SpawnMobs())
                 {
                     CloseDoors();
                 }
-                
             }
         }
 
@@ -78,26 +91,24 @@ public class Main : MonoBehaviour
         {
             if (IsAllEnemyDead())
             {
+                main.transform.Find(string.Format("Room{0}", currentRoom.ID)).GetChild(0).GetComponent<RoomState>().isRoomClear = true;
                 OpenDoors();
                 SpawnReward();
             }
             enemyDeath = false;
         }
-
-
-        
     }
 
     void GetGrid()
     {
-        generator2D.Generate(BitConverter.ToInt32(System.Guid.NewGuid().ToByteArray(),0));
+        generator2D.Generate(UnityEngine.Random.Range(0, 50000));
         generator2D.ChooseBossRoom();
         grid = generator2D.grid;
-        for(int i = 0; i < grid.Size.x; i++)
+        for (int i = 0; i < grid.Size.x; i++)
         {
             for (int j = 0; j < grid.Size.y; j++)
             {
-                switch(grid[i, j])
+                switch (grid[i, j])
                 {
                     case Generator2D.CellType.None:
                         {
@@ -105,21 +116,86 @@ public class Main : MonoBehaviour
                         }
                     case Generator2D.CellType.Room:
                         {
-                            if(IsNeighbourNone(grid, i, j))
+                            if (IsNeighbourNone(grid, i, j))
                             {
-                                PlaceWalls(grid,i,j);
+                                PlaceWalls(grid, i, j);
                             }
                             SpawnFloor(i, j);
                             break;
                         }
                     case Generator2D.CellType.Hallway:
                         {
+                            PlaceHallwayWalls(grid, i, j);
+                            SpawnFloor(i, j);
+                            break;
+                        }
+                    case Generator2D.CellType.DoorLeft:
+                        {
                             if (IsNeighbourNone(grid, i, j))
                             {
                                 PlaceWalls(grid, i, j);
-                                
+
                             }
-                            PlaceDoors(grid, i, j);
+                            if (IsNeighbourRoom(grid, i, j))
+                            {
+                                PlaceDoor(grid, i, j, false,DoorRotation.Left);
+                            }
+                            SpawnFloor(i, j);
+                            break;
+                        }
+                    case Generator2D.CellType.DoorRight:
+                        {
+                            if (IsNeighbourNone(grid, i, j))
+                            {
+                                PlaceWalls(grid, i, j);
+
+                            }
+                            if (IsNeighbourRoom(grid, i, j))
+                            {
+                                PlaceDoor(grid, i, j, false, DoorRotation.Right);
+                            }
+                            SpawnFloor(i, j);
+                            break;
+                        }
+                    case Generator2D.CellType.DoorBot:
+                        {
+                            if (IsNeighbourNone(grid, i, j))
+                            {
+                                PlaceWalls(grid, i, j);
+
+                            }
+                            if (IsNeighbourRoom(grid, i, j))
+                            {
+                                PlaceDoor(grid, i, j, false, DoorRotation.Bot);
+                            }
+                            SpawnFloor(i, j);
+                            break;
+                        }
+                    case Generator2D.CellType.DoorTop:
+                        {
+                            if (IsNeighbourNone(grid, i, j))
+                            {
+                                PlaceWalls(grid, i, j);
+
+                            }
+                            if (IsNeighbourRoom(grid, i, j))
+                            {
+                                PlaceDoor(grid, i, j, false, DoorRotation.Top);
+                            }
+                            SpawnFloor(i, j);
+                            break;
+                        }
+                    case Generator2D.CellType.DoubleDoor:
+                        {
+                            if (IsNeighbourNone(grid, i, j))
+                            {
+                                PlaceWalls(grid, i, j);
+
+                            }
+                            if (IsNeighbourRoom(grid, i, j))
+                            {
+                                PlaceDoor(grid, i, j, true, DoorRotation.Left);
+                            }
                             SpawnFloor(i, j);
                             break;
                         }
@@ -130,7 +206,15 @@ public class Main : MonoBehaviour
 
     bool IsNeighbourNone(Grid2D<Generator2D.CellType> grid, int x, int y)
     {
-        if (grid[x + 1, y] == Generator2D.CellType.None)
+        if (x == grid.Size.x - 1)
+        {
+            return true;
+        }
+        else if (grid[x + 1, y] == Generator2D.CellType.None)
+        {
+            return true;
+        }
+        if (x == 0)
         {
             return true;
         }
@@ -138,7 +222,15 @@ public class Main : MonoBehaviour
         {
             return true;
         }
+        if (y == grid.Size.y-1)
+        {
+            return true;
+        }
         else if (grid[x, y + 1] == Generator2D.CellType.None)
+        {
+            return true;
+        }
+        if (y == 0)
         {
             return true;
         }
@@ -148,28 +240,72 @@ public class Main : MonoBehaviour
         }
         return false;
     }
-    void PlaceWalls(Grid2D<Generator2D.CellType> grid,int x,int y)
+
+    bool IsNeighbourRoom(Grid2D<Generator2D.CellType> grid, int x, int y)
     {
-        if(grid[x+1,y] == Generator2D.CellType.None)
+        if (x < grid.Size.x && grid[x + 1, y] == Generator2D.CellType.Room)
+        {
+            return true;
+        }
+        else if (x > 0 && grid[x - 1, y] == Generator2D.CellType.Room)
+        {
+            return true;
+        }
+        else if (y < grid.Size.y && grid[x, y + 1] == Generator2D.CellType.Room)
+        {
+            return true;
+        }
+        else if (y > 0 && grid[x, y - 1] == Generator2D.CellType.Room)
+        {
+            return true;
+        }
+        return false;
+    }
+    void PlaceWalls(Grid2D<Generator2D.CellType> grid, int x, int y)
+    {
+        if(x == grid.Size.x-1)
         {
             wallXOffSet = 2;
             wallYOffSet = 0;
             InstantiateWalls(x, y, Quaternion.Euler(0, -90, 0));
-
         }
-        if(grid[x - 1, y] == Generator2D.CellType.None)
+        else if (grid[x + 1, y] == Generator2D.CellType.None)
+        {
+            wallXOffSet = 2;
+            wallYOffSet = 0;
+            InstantiateWalls(x, y, Quaternion.Euler(0, -90, 0));
+        }
+        if (x == 0)
         {
             wallXOffSet = -2;
             wallYOffSet = 0;
             InstantiateWalls(x, y, Quaternion.Euler(0, 90, 0));
         }
-        if (grid[x, y+1] == Generator2D.CellType.None)
+        else if(grid[x - 1, y] == Generator2D.CellType.None)
+        {
+            wallXOffSet = -2;
+            wallYOffSet = 0;
+            InstantiateWalls(x, y, Quaternion.Euler(0, 90, 0));
+        }
+        if (y == grid.Size.y-1)
         {
             wallXOffSet = 0;
             wallYOffSet = 2;
             InstantiateWalls(x, y, Quaternion.Euler(0, 180, 0));
         }
-        if (grid[x, y - 1] == Generator2D.CellType.None)
+        else if(grid[x, y + 1] == Generator2D.CellType.None)
+        {
+            wallXOffSet = 0;
+            wallYOffSet = 2;
+            InstantiateWalls(x, y, Quaternion.Euler(0, 180, 0));
+        }
+        if (y == 0)
+        {
+            wallXOffSet = 0;
+            wallYOffSet = -2;
+            InstantiateWalls(x, y, Quaternion.Euler(0, 0, 0));
+        }
+        else if(grid[x, y - 1] == Generator2D.CellType.None)
         {
             wallXOffSet = 0;
             wallYOffSet = -2;
@@ -177,83 +313,115 @@ public class Main : MonoBehaviour
         }
     }
 
-    void PlaceDoors(Grid2D<Generator2D.CellType> grid, int x, int y)
+    void PlaceHallwayWalls(Grid2D<Generator2D.CellType> grid, int x, int y)
     {
-        List<Quaternion> rotation = new List<Quaternion>();
-        List<Vector2> offset = new List<Vector2>();
-        if (grid[x + 1, y] == Generator2D.CellType.Room)
+        if (x < grid.Size.x && grid[x + 1, y] == Generator2D.CellType.None || x < grid.Size.x && grid[x + 1, y] == Generator2D.CellType.Room)
         {
-            offset.Add(new Vector2(2, 0));
-            rotation.Add(Quaternion.Euler(0, -90, 0));
+            wallXOffSet = 2;
+            wallYOffSet = 0;
+            InstantiateWalls(x, y, Quaternion.Euler(0, -90, 0));
 
         }
-        if (grid[x - 1, y] == Generator2D.CellType.Room)
+        if (x > 0 && grid[x - 1, y] == Generator2D.CellType.None || x > 0 && grid[x - 1, y] == Generator2D.CellType.Room)
         {
-            offset.Add(new Vector2(-2, 0));
-            rotation.Add(Quaternion.Euler(0, 90, 0));
+            wallXOffSet = -2;
+            wallYOffSet = 0;
+            InstantiateWalls(x, y, Quaternion.Euler(0, 90, 0));
         }
-        if (grid[x, y + 1] == Generator2D.CellType.Room)
+        if (y < grid.Size.y && grid[x, y + 1] == Generator2D.CellType.None || y < grid.Size.y && grid[x, y + 1] == Generator2D.CellType.Room)
         {
-            offset.Add(new Vector2(0, 2));
-            rotation.Add(Quaternion.Euler(0, 180, 0));
+            wallXOffSet = 0;
+            wallYOffSet = 2;
+            InstantiateWalls(x, y, Quaternion.Euler(0, 180, 0));
         }
-        if (grid[x, y - 1] == Generator2D.CellType.Room)
+        if (y > 0 && grid[x, y - 1] == Generator2D.CellType.None || y > 0 && grid[x, y - 1] == Generator2D.CellType.Room)
         {
-            offset.Add(new Vector2(0, -2));
-            rotation.Add(Quaternion.Euler(0, 0, 0));
+            wallXOffSet = 0;
+            wallYOffSet = -2;
+            InstantiateWalls(x, y, Quaternion.Euler(0, 0, 0));
         }
+    }
 
-        if (IsDoor(grid, x, y))
+    void PlaceDoor(Grid2D<Generator2D.CellType> grid, int x, int y, bool isDoubleDoor,DoorRotation rotation)
+    {
+        int doorCount = 0;
+        if (x < grid.Size.x && grid[x + 1, y] == Generator2D.CellType.Room)
         {
-            if(!generator2D.GetRoom(new Vector3(x + offset[0].x, 0, y + offset[0].y),0).isBossRoom)
+            wallXOffSet = 2;
+            wallYOffSet = 0;
+            if (isDoubleDoor | rotation == DoorRotation.Right)
             {
-                Instantiate(door, new Vector3(transform.position.x + x * 4 + offset[0].x, 0.14f, transform.position.z + y * 4 + offset[0].y),
-                                rotation[0], main.transform);
+                InstantiateDoors(x, y, Quaternion.Euler(0, -90, 0));
             }
             else
             {
-                Instantiate(bossDoor, new Vector3(transform.position.x + x * 4 + offset[0].x, 0.14f, transform.position.z + y * 4 + offset[0].y),
-                                rotation[0], main.transform);
+                InstantiateWalls(x, y, Quaternion.Euler(0, -90, 0));
             }
-            
+            doorCount++;
 
         }
-        else
+        if (x > 0 && grid[x - 1, y] == Generator2D.CellType.Room)
         {
-            for(int i = 0; i < rotation.Count; i++)
+            wallXOffSet = -2;
+            wallYOffSet = 0;
+            if (isDoubleDoor | rotation == DoorRotation.Left)
             {
-                Instantiate(wall, new Vector3(transform.position.x + x * 4 + offset[i].x, 0, transform.position.z + y * 4 + offset[i].y),
-                rotation[i], main.transform);
+                InstantiateDoors(x, y, Quaternion.Euler(0, 90, 0));
+            }
+            else
+            {
+                InstantiateWalls(x, y, Quaternion.Euler(0, 90, 0));
+            }
+            doorCount++;
+        }
+        if (y < grid.Size.y && grid[x, y + 1] == Generator2D.CellType.Room)
+        {
+            wallXOffSet = 0;
+            wallYOffSet = 2;
+            if ( isDoubleDoor | rotation == DoorRotation.Top)
+            {
+                InstantiateDoors(x, y, Quaternion.Euler(0, 180, 0));
+            }
+            else
+            {
+                InstantiateWalls(x, y, Quaternion.Euler(0, 180, 0));
+            }
+            doorCount++;
+        }
+        if (y > 0 && grid[x, y - 1] == Generator2D.CellType.Room)
+        {
+            wallXOffSet = 0;
+            wallYOffSet = -2;
+            if ( isDoubleDoor || rotation == DoorRotation.Bot)
+            {
+                InstantiateDoors(x, y, Quaternion.Euler(0, 0, 0));
+            }
+            else
+            {
+                InstantiateWalls(x, y, Quaternion.Euler(0, 0, 0));
             }
         }
     }
-
-    bool IsDoor(Grid2D<Generator2D.CellType> grid, int x, int y)
-    {
-        int counter = 0;
-        if (grid[x + 1, y] == Generator2D.CellType.Hallway)
-        {
-            counter++;
-        }
-        if (grid[x - 1, y] == Generator2D.CellType.Hallway)
-        {
-            counter++;
-        }
-        if (grid[x, y + 1] == Generator2D.CellType.Hallway)
-        {
-            counter++;
-        }
-        if (grid[x, y - 1] == Generator2D.CellType.Hallway)
-        {
-            counter++;
-        }
-        return counter == 1;
-    }
-
+   
     void InstantiateWalls(float x,float y,Quaternion rotate)
     {
         Instantiate(wall, new Vector3(transform.position.x + x * 4 + wallXOffSet, 0, transform.position.z + y * 4 + wallYOffSet),
                 rotate, main.transform);
+    }
+
+    void InstantiateDoors(float x, float y, Quaternion rotate)
+    {
+        if (!generator2D.GetRoom(new Vector3(x + wallXOffSet, 0, y + wallYOffSet), 0).isBossRoom)
+        {
+            Instantiate(door, new Vector3(transform.position.x + x * 4 + wallXOffSet, 0, transform.position.z + y * 4 + wallYOffSet),
+                rotate, main.transform);
+        }
+        else
+        {
+            Instantiate(bossDoor, new Vector3(transform.position.x + x * 4 + wallXOffSet, 0, transform.position.z + y * 4 + wallYOffSet),
+                rotate, main.transform);
+        }
+        
     }
 
     void SpawnPlayer()
@@ -308,23 +476,46 @@ public class Main : MonoBehaviour
         return new Vector3(playerPosition.position.x / 4 , 2, playerPosition.position.z / 4);
     }
 
-    bool ActivateMobs()
+    bool SpawnMobs()
     {
-        bool hasEnemy = false;
         if (currentRoom != null)
         {
             Transform current = main.transform.Find(string.Format("Room{0}", currentRoom.ID)).GetChild(0);
-            foreach (Transform child in current)
+            if (!current.GetComponent<RoomState>().isRoomClear)
             {
-                if (child.CompareTag("Enemy"))
+                if (currentRoom.isBossRoom)
                 {
-                    child.gameObject.SetActive(true);
-                    hasEnemy = true;
+                    Vector3 bossPos = new Vector3(transform.position.x + currentRoom.bounds.x * 4 + currentRoom.bounds.width * 2, 2, transform.position.z + currentRoom.bounds.y * 4 + currentRoom.bounds.height * 2);
+                    Instantiate(spiderEnemy, bossPos, Quaternion.identity, main.transform.Find(string.Format("Room{0}", currentRoom.ID)).GetChild(0));
                 }
+                else
+                {
+                    int mobCount = UnityEngine.Random.Range(minMobInRoom,maxMobInRoom);
+                    List<GameObject> mobs = new List<GameObject> { meleeEnemy, rangeEnemy};
+                    for(int i = 0; i < mobCount; i++)
+                    {
+                        Vector3 randomPosition;
+                        Vector3 roomCenter = new Vector3(transform.position.x + currentRoom.bounds.x * 4 + currentRoom.bounds.width * 2, 0, transform.position.z + currentRoom.bounds.y * 4 + currentRoom.bounds.height * 2);
+                        float range = currentRoom.bounds.width < currentRoom.bounds.height  ? currentRoom.bounds.width * 2 : currentRoom.bounds.height * 2;
+                        RandomPointOnNavMesh(roomCenter,range,out randomPosition);
+                        Instantiate(mobs[UnityEngine.Random.Range(0, 2)], randomPosition, Quaternion.identity, main.transform.Find(string.Format("Room{0}", currentRoom.ID)).GetChild(0));  
+                    }
+                }
+                return true;
             }
         }
-        return hasEnemy;
+        return false;
     }
+
+    void RandomPointOnNavMesh(Vector3 center, float range, out Vector3 result)
+    {
+        Vector3 randomPoint = center + UnityEngine.Random.insideUnitSphere * range;
+        randomPoint.y = 0;
+        NavMeshHit hit;
+        NavMesh.SamplePosition(randomPoint, out hit, range, NavMesh.AllAreas);
+        result = hit.position; 
+    }
+
 
     void CloseDoors()
     {
@@ -373,4 +564,5 @@ public class Main : MonoBehaviour
             Instantiate(key, lastMobPosition, Quaternion.identity, main.transform);
         }
     }
+    
 }

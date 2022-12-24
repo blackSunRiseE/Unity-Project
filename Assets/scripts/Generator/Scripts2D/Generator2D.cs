@@ -9,7 +9,12 @@ public class Generator2D : MonoBehaviour {
     public enum CellType {
         None,
         Room,
-        Hallway
+        Hallway,
+        DoorLeft,
+        DoorRight,
+        DoorTop,
+        DoorBot,
+        DoubleDoor
     }
 
     public class Room {
@@ -18,6 +23,8 @@ public class Generator2D : MonoBehaviour {
         public bool isFinal = false;
         public bool isBossRoom;
         public int hallwaysCount = 0;
+        public int parallelCount = 0;
+        public bool[] parallelSide = new bool[4] { true, true, true, true }; // left top right bottom
         public Room(Vector2Int location, Vector2Int size) {
             bounds = new RectInt(location, size);
             ID = System.Guid.NewGuid();
@@ -66,6 +73,7 @@ public class Generator2D : MonoBehaviour {
         Triangulate();
         CreateHallways();
         PathfindHallways();
+        GetRoomParallelHallway();
     }
 
     void PlaceRooms() {
@@ -168,27 +176,54 @@ public class Generator2D : MonoBehaviour {
             });
 
             if (path != null) {
+                Vector2Int prevPoint = path[0];
                 for (int i = 0; i < path.Count; i++) {
                     var current = path[i];
-
+                    
                     if (grid[current] == CellType.None) {
-                        grid[current] = CellType.Hallway;
+                        
+                        if(grid[prevPoint] == CellType.Room)
+                        {
+                            grid[current] = GetRotationOfDoor(current, prevPoint);
+
+                        }
+                        else if (grid[path[i+1]] == CellType.Room)
+                        {
+                            grid[current] = GetRotationOfDoor(current, path[i + 1]);
+                        }
+                        else if (grid[path[i + 1]] == CellType.Room && grid[prevPoint] == CellType.Room)
+                        {
+                            grid[current] = CellType.DoubleDoor;
+                        }
+                        else
+                        {
+                            grid[current] = CellType.Hallway;
+                        }
                     }
+
 
                     if (i > 0) {
                         var prev = path[i - 1];
 
                         var delta = current - prev;
                     }
+                    prevPoint = current;
                 }
-
-                /*foreach (var pos in path) {
-                    if (grid[pos] == CellType.Hallway) {
-                        PlaceHallway(pos);
-                    }
-                }*/
             }
         }
+    }
+
+    CellType GetRotationOfDoor(Vector2Int position,Vector2Int prevPosition)
+    {
+        if (position.x + 1 == prevPosition.x)
+            return CellType.DoorRight;
+        if (position.x - 1 == prevPosition.x)
+            return CellType.DoorLeft;
+        if (position.y + 1 == prevPosition.y)
+            return CellType.DoorTop;
+        if (position.y - 1 == prevPosition.y)
+            return CellType.DoorBot;
+        return CellType.DoubleDoor;
     }
     public Room GetRoom(Vector3 playerPosition,float offset)
     {
@@ -225,25 +260,42 @@ public class Generator2D : MonoBehaviour {
     }
     bool FindDoor(int x,int y)
     {
-        if(grid[x, y] == CellType.Hallway)
+        if(grid[x, y] == CellType.DoorTop)
         {
-            if (CountNeighbour(x, y, CellType.Hallway) == 1 && CountNeighbour(x, y, CellType.Room) == 1 )
-            {
-                return true;
-            }
+            roomPosition = new Vector2(x, y+1);
+            return true;
+        }
+        if (grid[x, y] == CellType.DoorBot)
+        {
+            roomPosition = new Vector2(x, y - 1);
+            return true;
+        }
+        if (grid[x, y] == CellType.DoorLeft)
+        {
+            roomPosition = new Vector2(x - 1, y);
+            return true;
+        }
+        if (grid[x, y] == CellType.DoorRight)
+        {
+            roomPosition = new Vector2(x+1, y);
+            return true;
+        }
+        if (grid[x, y] == CellType.DoubleDoor)
+        {
+            GetNeighbours(x, y, CellType.Room);
+            return true;
         }
         return false;
         
     }
-    int CountNeighbour(int x,int y,CellType cell)
+    void GetNeighbours(int x,int y,CellType cell)
     {
-        int counter = 0;
         if(grid.Size.x > x)
         {
             if (grid[x + 1, y] == cell)
             {
                 roomPosition = new Vector2(x + 1, y);
-                counter++;
+                GetRoom(new Vector3(x-1, 0, y), 0).hallwaysCount++;
             }
         }
         if (x > 0)
@@ -251,7 +303,7 @@ public class Generator2D : MonoBehaviour {
             if (grid[x - 1, y] == cell)
             {
                 roomPosition = new Vector2(x - 1, y);
-                counter++;
+                GetRoom(new Vector3(x + 1, 0, y), 0).hallwaysCount++;
             }
         }
         if (y > 0)
@@ -259,7 +311,7 @@ public class Generator2D : MonoBehaviour {
             if (grid[x , y - 1] == cell)
             {
                 roomPosition = new Vector2(x, y - 1);
-                counter++;
+                GetRoom(new Vector3(x , 0, y+1), 0).hallwaysCount++;
             }
         }
         if (grid.Size.y > y)
@@ -267,9 +319,50 @@ public class Generator2D : MonoBehaviour {
             if (grid[x, y + 1] == cell)
             {
                 roomPosition = new Vector2(x, y + 1);
-                counter++;
+                GetRoom(new Vector3(x, 0, y - 1), 0).hallwaysCount++;
             }
         }
-        return counter;
+    }
+    public Room GetRoomById(Guid id)
+    {
+        foreach(var room in rooms)
+        {
+            if(room.ID == id)
+            {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    void GetRoomParallelHallway()
+    {
+
+        foreach (var room in rooms)
+        {
+            for (int i = room.bounds.x; i < room.bounds.xMax; i++)
+            {
+                if (room.bounds.y > 0 && grid[i, room.bounds.y - 1] != CellType.Hallway)
+                {
+                    room.parallelSide[3] = false;
+                }
+                if (room.bounds.yMax < grid.Size.y - 1 && grid[i, room.bounds.yMax + 1] != CellType.Hallway)
+                {
+                    room.parallelSide[1] = false;
+                }
+
+            }
+            for (int i = room.bounds.y; i < room.bounds.yMax; i++)
+            {
+                if (room.bounds.x > 0 && grid[room.bounds.x - 1, i] != CellType.Hallway)
+                {
+                    room.parallelSide[0] = false;
+                }
+                if (room.bounds.xMax < grid.Size.x - 1 && grid[room.bounds.xMax + 1, i] != CellType.Hallway)
+                {
+                    room.parallelSide[2] = false;
+                }
+            }
+        }
     }
 }

@@ -192,6 +192,7 @@ MonoBehaviour:
   health: 0
   animator: {fileID: 0}
   maxHealth: 50
+  rangeToStopAct: 30
   deadAnimationDuration: 0
   aimMask:
     serializedVersion: 2

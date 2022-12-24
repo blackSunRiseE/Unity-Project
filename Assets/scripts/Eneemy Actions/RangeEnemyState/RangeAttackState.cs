@@ -7,8 +7,6 @@ public class RangeAttackState : BaseRangeState
     public override void EnterState(RangeEnemyAI stateControler)
     {
         stateControler.lastAttackTime = Time.time;
-        //stateControler.animator.SetBool("isAttack", true);
-        //animator
     }
     public override void UpdateState(RangeEnemyAI stateControler)
     {
@@ -24,6 +22,11 @@ public class RangeAttackState : BaseRangeState
             {
                 StateExit(stateControler.Damaged, stateControler);
             }
+        }
+        else if (distanceToPlayer > stateControler.rangeToStopAct)
+        {
+            stateControler.StopUnit();
+            StateExit(stateControler.Idle, stateControler);
         }
         else if (!stateControler.PlayerOnSigth())
         {

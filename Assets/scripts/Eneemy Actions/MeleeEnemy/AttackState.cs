@@ -11,7 +11,7 @@ public class AttackState : BaseState
     public override void UpdateState(BaseMeleeEnemyAI stateControler)
     {
         stateControler.LookAtPlayer();
-        float distanceToPlayer = stateControler.GetDistanceToPlayer();
+        float distanceToPlayer = stateControler.GetDistanceToPlayer(stateControler.player.position);
 
         if (stateControler.getHit)
         {

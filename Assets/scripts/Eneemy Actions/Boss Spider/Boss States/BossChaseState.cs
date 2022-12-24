@@ -29,6 +29,11 @@ public class BossChaseState : BaseBossState
                 StateExit(stateControler.Damaged, stateControler);
             }
         }
+        if(distanceToPlayer > stateControler.rangeToStopAct)
+        {
+            stateControler.StopUnit(stateControler.transform.position);
+            StateExit(stateControler.Idle, stateControler);
+        }
         if (stateControler.rangeAttackTime + stateControler.rangeAttackDelay < Time.time)
         {
             stateControler.StopUnit(stateControler.transform.position);

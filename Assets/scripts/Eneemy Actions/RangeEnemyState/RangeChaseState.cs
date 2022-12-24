@@ -11,6 +11,7 @@ public class RangeChaseState : BaseRangeState
     }
     public override void UpdateState(RangeEnemyAI stateControler)
     {
+        float distanceToPlayer = stateControler.GetDistanceToPlayer(stateControler.player.position);
         stateControler.ChasePlayer(stateControler.player, stateControler.moveSpeed);
         if (stateControler.getHit)
         {
@@ -24,11 +25,17 @@ public class RangeChaseState : BaseRangeState
                 StateExit(stateControler.Damaged, stateControler);
             }
         }
+        if (distanceToPlayer > stateControler.rangeToStopAct)
+        {
+            stateControler.StopUnit();
+            StateExit(stateControler.Idle, stateControler);
+        }
         else if (stateControler.PlayerOnSigth())
         {
             stateControler.StopUnit();
             StateExit(stateControler.Attack, stateControler);
         }
+        
     }
 
     public void StateExit(BaseRangeState state, RangeEnemyAI stateControler)

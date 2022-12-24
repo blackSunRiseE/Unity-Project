@@ -12,7 +12,7 @@ public class ChaseState : BaseState
     public override void UpdateState(BaseMeleeEnemyAI stateControler)
     {
         stateControler.ChasePlayer(stateControler.player, stateControler.moveSpeed);
-        float distanceToPlayer = stateControler.GetDistanceToPlayer();
+        float distanceToPlayer = stateControler.GetDistanceToPlayer(stateControler.player.position);
         if (stateControler.getHit)
         {
             if (stateControler.health <= 0)
@@ -23,6 +23,11 @@ public class ChaseState : BaseState
             {
                 StateExit(stateControler.Damaged, stateControler);
             }
+        }
+        else if (distanceToPlayer > stateControler.rangeToStopAct)
+        {
+            stateControler.StopUnit();
+            StateExit(stateControler.Idle, stateControler);
         }
         else if(distanceToPlayer < stateControler.attackRange)
         {

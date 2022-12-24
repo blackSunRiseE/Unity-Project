@@ -10,7 +10,7 @@ public  class BaseEnemyAI : MonoBehaviour
     [HideInInspector] public float health;
     [HideInInspector] public Animator animator;
     [SerializeField] public float maxHealth;
-    string clipName;
+    [SerializeField] public float rangeToStopAct;
     protected NavMeshAgent enemy;
     [HideInInspector] public float deadAnimationDuration;
     public void ChasePlayer(Transform player, float moveSpeed)
@@ -61,6 +61,10 @@ public  class BaseEnemyAI : MonoBehaviour
         getHit = true;
         health -= damage;
         transform.Find("Canvas").Find("Health Bar").GetComponent<EnemyUI>().SetHealth((int)health);
+    }
+    public float GetDistanceToPlayer(Vector3 playerPosition)
+    {
+        return Vector3.Distance(transform.position, playerPosition);
     }
 
 }

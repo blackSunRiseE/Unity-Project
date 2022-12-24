@@ -108,7 +108,7 @@ NavMeshSettings:
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
-    agentSlope: 45
+    agentSlope: 24
     agentClimb: 0.4
     ledgeDropHeight: 0
     maxJumpAcrossDistance: 0
@@ -441,8 +441,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   size: {x: 50, y: 50}
   roomCount: 8
-  roomMaxSize: {x: 10, y: 10}
-  roomMinSize: {x: 8, y: 8}
+  roomMaxSize: {x: 11, y: 11}
+  roomMinSize: {x: 9, y: 9}
   cubePrefab: {fileID: 7415050535990569633, guid: 3fb4ddafbd160274ba8f07a1cf8cd5ee, type: 3}
   redMaterial: {fileID: 2100000, guid: 71673d9873285904ab00282788add27f, type: 2}
   blueMaterial: {fileID: 2100000, guid: bd79999920190574a94044b2acad7316, type: 2}
@@ -472,8 +472,10 @@ MonoBehaviour:
   bossFurniture: {fileID: 8342832647462239227, guid: 733fe50cccd3bbb4a893ff0ab6ab711a, type: 3}
   key: {fileID: 7215152643106566549, guid: d14c940e574ecab47af06eba3fbbf84b, type: 3}
   flask: {fileID: 2570411824687710329, guid: cc4537bbc14ddd54582c546c20949db3, type: 3}
+  meleeEnemy: {fileID: 2627872587408212458, guid: 0b52e99302f58f54d9d81b59c361515c, type: 3}
+  rangeEnemy: {fileID: 332320036947796874, guid: fdcefc9245b6d994d8d00e4f683e432a, type: 3}
+  spiderEnemy: {fileID: 5624690729807994268, guid: 05e38e5853e71754ea6b7362e842ab98, type: 3}
   player: {fileID: 6041743966987918706, guid: 23b8e2efb4142f84fbcdcc20d1be2fbe, type: 3}
-  meleeEnemy: {fileID: 1671777887788206057, guid: bacdb517c87d21c49bfc5a779048a8fd, type: 3}
   gameOver: 0
   gameWin: 0
   gameOverScreen: {fileID: 1899051509}

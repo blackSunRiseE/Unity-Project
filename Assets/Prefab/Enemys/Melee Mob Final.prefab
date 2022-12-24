@@ -762,6 +762,7 @@ MonoBehaviour:
   health: 0
   animator: {fileID: 0}
   maxHealth: 60
+  rangeToStopAct: 15
   deadAnimationDuration: 0
   player: {fileID: 6041743966987918718, guid: 23b8e2efb4142f84fbcdcc20d1be2fbe, type: 3}
   moveSpeed: 3

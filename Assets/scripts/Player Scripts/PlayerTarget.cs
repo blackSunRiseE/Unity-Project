@@ -8,7 +8,7 @@ public class PlayerTarget : MonoBehaviour
     
     [SerializeField] public float maxHealth = 150f;
     [SerializeField] public float health;
-    [SerializeField] GameObject keyPrefab;
+    [SerializeField] GameObject keyPrefab; 
     [HideInInspector] public static int keys = 0;
     [HideInInspector] public static int maxKeys = 3;
     

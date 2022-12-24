@@ -246,6 +246,10 @@ PrefabInstance:
       propertyPath: attackRange
       value: 1.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1180213162, guid: 3fa65c301ab86454fabf881ef4f070eb, type: 3}
+      propertyPath: rangeToStopAct
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 481505453347320031, guid: 3fa65c301ab86454fabf881ef4f070eb, type: 3}
       propertyPath: m_Name
       value: Spideerling Final
